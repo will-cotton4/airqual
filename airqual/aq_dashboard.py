@@ -25,7 +25,7 @@ def create_app():
     """Contains routing logic for airqual app."""
     # APP = Flask(__name__)
     APP.config['ENV'] = config('ENV')
-    APP.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite3'
+    APP.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
     api = openaq.OpenAQ()
 
     def process_to_list(body):
