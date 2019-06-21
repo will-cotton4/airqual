@@ -15,6 +15,7 @@ class Record(DB.Model):
     """Contains database schema for record of values taken from API call"""
     id = DB.Column(DB.Integer, primary_key=True)
     datetime = DB.Column(DB.String(25))
+    city = DB.Column(DB.String(60))
     value = DB.Column(DB.Float, nullable=False)
 
     def __repr__(self):
@@ -40,20 +41,31 @@ def create_app():
     @APP.route('/')
     def root():
         """Main route."""
+        # cities = Record.query(Record.city.distinct().label("title"))
+        # cities = [city.title for city in cities().all()]
         potential_risks = Record.query.filter(Record.value >= 10).all()
-        return render_template('base.html', records=potential_risks)
+        return render_template('base.html',
+                               records=potential_risks)
+
+    def add_city(city, api):
+        status, body = api.measurements(city=city, parameter='pm25')
+        city_data = process_to_list(body)
+        for result in city_data:
+            db_record = Record(city=city, datetime=result[0], value=result[1])
+            DB.session.add(db_record)
 
     @APP.route('/refresh')
     def refresh():
         """Pull fresh data from Open AQ and replace existing data."""
         DB.drop_all()
         DB.create_all()
-        status, body = api.measurements(city='Los Angeles', parameter='pm25')
-        new_data = process_to_list(body)
-        for result in new_data:
-            db_record = Record(datetime=result[0], value=result[1])
-            DB.session.add(db_record)
+        cities = ['Los Angeles', 'Austin', 'Dallas', 'Shanghai']
+        for city in cities:
+            add_city(city, api)
         DB.session.commit()
         return 'Data refreshed!'
 
+    # @APP.route('/city', methods=['POST'])
+    # @APP.route('/city/<name>', methods=['GET'])
+    # def
     return APP
