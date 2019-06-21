@@ -41,9 +41,7 @@ def create_app():
     def root():
         """Main route."""
         potential_risks = Record.query.filter(Record.value >= 10).all()
-        potential_risks = [(risk.datetime, risk.value) for risk in potential_risks]
-        print(potential_risks)
-        return 'Potential risks:\n' + str(potential_risks)
+        return render_template('base.html', records=potential_risks)
 
     @APP.route('/refresh')
     def refresh():
