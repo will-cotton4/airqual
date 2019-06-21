@@ -2,7 +2,7 @@
 import os
 from os import getenv
 from pickle import dump, loads
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, jsonify
 from decouple import config
 from flask_sqlalchemy import SQLAlchemy
 import openaq
@@ -39,9 +39,11 @@ def create_app():
 
     @APP.route('/')
     def root():
-        """Base view."""
-        status, body = api.measurements(city='Los Angeles', parameter='pm25')
-        return str(process_to_list(body))
+        """Main route."""
+        potential_risks = Record.query.filter(Record.value >= 10).all()
+        potential_risks = [(risk.datetime, risk.value) for risk in potential_risks]
+        print(potential_risks)
+        return 'Potential risks:\n' + str(potential_risks)
 
     @APP.route('/refresh')
     def refresh():
